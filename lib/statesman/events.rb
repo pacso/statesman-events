@@ -39,7 +39,8 @@ module Statesman
       end
 
       raise Statesman::GuardFailedError,
-            "All guards returned false when triggering event #{event_name}" if transition_targets == failed_targets
+            "All guards returned false when triggering event #{event_name}" if
+        transition_targets == failed_targets
       true
     end
 
