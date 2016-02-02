@@ -21,18 +21,8 @@ module Statesman
     end
 
     def trigger!(event_name, metadata = {})
-      transitions = self.class.events.fetch(event_name) do
-        raise Statesman::TransitionFailedError,
-              "Event #{event_name} not found"
-      end
-
-      transition_targets = transitions.fetch(current_state) do
-        raise Statesman::TransitionFailedError,
-              "State #{current_state} not found for Event #{event_name}"
-      end
-
+      transition_targets = available_transitions
       failed_targets = []
-
       transition_targets.each do |target_state|
         break if transition_to(target_state, metadata)
         failed_targets << target_state
@@ -48,6 +38,18 @@ module Statesman
       self.trigger!(event_name, metadata)
     rescue Statesman::TransitionFailedError, Statesman::GuardFailedError
       false
+    end
+
+    def available_transitions
+      transitions = self.class.events.fetch(event_name) do
+        raise Statesman::TransitionFailedError,
+              "Event #{event_name} not found"
+      end
+
+      transitions.fetch(current_state) do
+        raise Statesman::TransitionFailedError,
+              "State #{current_state} not found for Event #{event_name}"
+      end
     end
 
     def available_events
