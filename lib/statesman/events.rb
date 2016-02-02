@@ -26,12 +26,20 @@ module Statesman
               "Event #{event_name} not found"
       end
 
-      new_state = transitions.fetch(current_state) do
+      transition_targets = transitions.fetch(current_state) do
         raise Statesman::TransitionFailedError,
               "State #{current_state} not found for Event #{event_name}"
       end
 
-      transition_to!(new_state.first, metadata)
+      failed_targets = []
+
+      transition_targets.each do |target_state|
+        break if transition_to(target_state, metadata)
+        failed_targets << target_state
+      end
+
+      raise Statesman::GuardFailedError,
+            "All guards returned false when triggering event #{event_name}" if transition_targets == failed_targets
       true
     end
 
